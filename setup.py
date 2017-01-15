@@ -9,11 +9,13 @@ setup(
     packages=find_packages(exclude=['tests']),
     zip_safe=False,
     install_requires=[
-        'pymongo'
+        'pymongo',
+        'flask',
+        'pyopenssl'
     ],
     entry_points={
         'console_scripts': [
-
+            'webserver = gallery.main:main'
         ],
     }
 )
