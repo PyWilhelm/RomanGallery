@@ -9,7 +9,7 @@ from gallery.main import app
 @app.route('/wx')
 def main_handler():
     signature = request.args.get('signature')
-    timestamp = request.args.get('signature')
+    timestamp = request.args.get('timestamp')
     nonce = request.args.get('nonce')
     echostr = request.args.get('echostr')
     token = 'MemoryGallery'
