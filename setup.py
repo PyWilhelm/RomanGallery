@@ -11,7 +11,8 @@ setup(
     install_requires=[
         'pymongo',
         'flask',
-        'pyopenssl'
+        'pyopenssl',
+        'wechat-sdk'
     ],
     entry_points={
         'console_scripts': [
