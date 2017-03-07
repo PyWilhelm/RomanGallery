@@ -28,7 +28,8 @@ class BaseHandler(object):
             'timestamp': self.timestamp,
             'type': self.type,
             'data': {},
-            'response': False
+            'response': False,
+            'tags': []
         }
 
 
@@ -39,9 +40,17 @@ class TextReceiveHandler(BaseHandler):
 
     def save(self):
         meta = self.make_meta()
-        meta['data'] = {'content': self.content}
-        inserted_id = self.in_coll.insert_one(meta)
-        return inserted_id
+        lines = self.content.split('\n')
+        title = lines[0].strip()
+        if title.find(u'写给') == 0:
+            content = '\n'.join(lines[1:])
+            meta['data'] = {'type': 'letter', 'content': content, 'title': title}
+            self.in_coll.insert_one(meta)
+
+        elif title.find(u'标签') == 0:
+            tags = title.split(' ')[1:]
+            item = self.in_coll.find().sort({'timestamp': -1}).limit(1)[0]
+            self.in_coll.update({'_id': item['_id']}, {'tags': tags})
 
 
 class ImageReceiveHandler(BaseHandler):
@@ -61,19 +70,24 @@ class ImageReceiveHandler(BaseHandler):
         return inserted_id, image_id
 
 
-class ImageResponse(object):
-    image_coll = db_cli['images']
+class Response(BaseHandler):
 
-    @classmethod
-    def response(cls, image_id):
-        return wechat.response_image('md1-r-JVyFBS6TCM6KBPLFrY48sBC-02e7JYPgZxw86TD6vO59x_bmCFsZp5vxbB')
+    def __init__(self, message):
+        super(Response, self).__init__(message)
 
-        image_doc = cls.image_coll.find_one({'_id': image_id})
-        if image_doc:
-            image_data = base64.b64decode(image_doc['data'])
-            print image_data
-            resp = wechat.upload_media('image', StringIO(image_data), extension='jpg')
-            response_xml = wechat.response_image(resp['media_id'])
-            return response_xml
-        else:
-            return
+        content = message.content.strip()
+        if content.find(u'想看留言') == 0:
+            item = self.in_coll.find({'data.type': 'message', 'response': False}).sort({'timestamp': -1}).limit(1)[0]
+            resp_content = item['data']['content']
+            resp_type = 'message'
+            self.in_coll.update({'_id': item['_id']}, {'response': True})
+
+
+        elif content.find(u'想看信') == 0:
+            item = self.in_coll.find({'data.type': 'letter', 'response': False}).sort({'timestamp': -1}).limit(1)[0]
+            resp_content = item['data']['content']
+            resp_title = item['data']['title']
+            resp_type = 'article'
+            self.in_coll.update({'_id': item['_id']}, {'response': True})
+        elif content.find(u'美美哒') == 0:
+            pass

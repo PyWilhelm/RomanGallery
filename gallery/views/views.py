@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 from flask import request
+from flask import Flask
 from wechat_sdk.messages import TextMessage, ImageMessage, VoiceMessage, LinkMessage
 
-from gallery.handler import TextReceiveHandler, ImageReceiveHandler, ImageResponse
-from gallery.main import app
+from gallery.handler import TextReceiveHandler, ImageReceiveHandler, Response
 from gallery.utils import wechat
+
+
+app = Flask(__name__)
 
 
 @app.route('/wx', methods=['GET', 'POST'])
@@ -23,7 +26,7 @@ def main_handler():
         print message.raw
         if isinstance(message, TextMessage):
             TextReceiveHandler(message)
-            response = ImageResponse.response('')
+            response = Response(message)
             return response
         elif isinstance(message, ImageMessage):
             _, image_id = ImageReceiveHandler(message).save()

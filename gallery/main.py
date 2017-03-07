@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from flask import Flask
-
-app = Flask(__name__)
+from views import views
 
 
 def main():
-    from views import views
-    app.run(host='0.0.0.0', port=8443, debug=True, ssl_context=('host.crt', 'host.key'))
+    views.app.run(host='0.0.0.0', port=8080, debug=True)
+
+if __name__ == '__main__':
+    main()
